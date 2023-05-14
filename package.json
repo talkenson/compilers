@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --outfile=out.js --format=esm --tree-shaking=false",
+    "copy": "npm run build && cat out.js | pbcopy"
+  },
+  "dependencies": {
+    "esbuild": "^0.17.18",
+    "nanoid": "^4.0.2",
+    "vitest": "^0.31.0"
+  }
+}
