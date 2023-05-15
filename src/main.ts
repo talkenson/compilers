@@ -121,6 +121,8 @@ const reset = () => {
   const pushFunction = () => tracer.push(new FunctionDeclaration())
   const pushFnArg = (name: string, type?: string) =>
     tracer.current.params.args.push({ type, name })
+  const pushCallArg = (value: LangEntity<any>) =>
+    tracer.current.params.args.push(value)
   const pushReturn = () => tracer.push(new Return())
   const pushBreak = () => {
     const latest = tracer.findLast((entity) => entity instanceof Switch)
@@ -244,6 +246,7 @@ const reset = () => {
     pushGlobal,
     pushFunction,
     pushFnArg,
+    pushCallArg,
     pushBlock,
     pushAssignment,
     pushReturn,

@@ -1,0 +1,87 @@
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+PUSH  ''          
+MOV   r3sult      POP   
+CALL  getArg      0     
+MOV   t0p         POP   
+PUSH  t0p         
+NEGB  POP         
+JF    $Else_Conditional_333:
+CALL  read        0     
+MOV   t0p         POP   
+JMP   $Exit_Conditional_333:
+LBL   $Else_Conditional_333:
+LBL   $Exit_Conditional_333:
+PUSH  t0p         
+PUSH  0           
+LE    POP         POP   
+JF    $Else_Conditional_344:
+PUSH  5           
+MOV   t0p         POP   
+JMP   $Exit_Conditional_344:
+LBL   $Else_Conditional_344:
+LBL   $Exit_Conditional_344:
+PUSH  1           
+MOV   i1er        POP   
+LBL   $Condition_Loop_356:
+PUSH  t0p         
+PUSH  1           
+ADD   POP         POP   
+LT    POP         i1er  
+JF    $Exit_Loop_356:
+PUSH  r3sult      
+PUSH  i1er        
+CALL  g3tFizzBuzz 1     
+ADD   POP         POP   
+MOV   r3sult      POP   
+PUSH  i1er        
+PUSH  1           
+ADD   POP         POP   
+MOV   i1er        POP   
+JMP   $Condition_Loop_356:
+LBL   $Exit_Loop_356:
+PUSH  r3sult      
+CALL  print       1     
+STO   
+STO   
+LBL   $FNCALL_g3tFizzBuzz:
+STN   
+MOV   i1i         POP   
+PUSH  i1i         
+PUSH  15          
+MOD   POP         POP   
+PUSH  0           
+EQ    POP         POP   
+JF    $Else_Conditional_383:
+PUSH  'FizzBuzz'  
+STO   
+JMP   $Exit_Conditional_383:
+LBL   $Else_Conditional_383:
+LBL   $Exit_Conditional_383:
+PUSH  i1i         
+PUSH  3           
+MOD   POP         POP   
+PUSH  0           
+EQ    POP         POP   
+JF    $Else_Conditional_395:
+PUSH  'Fizz'      
+STO   
+JMP   $Exit_Conditional_395:
+LBL   $Else_Conditional_395:
+LBL   $Exit_Conditional_395:
+PUSH  i1i         
+PUSH  5           
+MOD   POP         POP   
+PUSH  0           
+EQ    POP         POP   
+JF    $Else_Conditional_407:
+PUSH  'Buzz'      
+STO   
+JMP   $Exit_Conditional_407:
+LBL   $Else_Conditional_407:
+LBL   $Exit_Conditional_407:
+PUSH  i1i         
+STO   
+STO   
+LBL   $GLOBAL__program_end:

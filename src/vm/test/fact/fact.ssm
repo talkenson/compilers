@@ -1,0 +1,40 @@
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+CALL  getArg 0     
+MOV   n1n    POP   
+PUSH  n1n    
+NEGB  POP    
+JF    $Else_Conditional_1058:
+CALL  read   0     
+MOV   n1n    POP   
+JMP   $Exit_Conditional_1058:
+LBL   $Else_Conditional_1058:
+LBL   $Exit_Conditional_1058:
+PUSH  1      
+MOV   r3s    POP   
+PUSH  1      
+MOV   i1i    POP   
+LBL   $Condition_Loop_1074:
+PUSH  n1n    
+PUSH  1      
+ADD   POP    POP   
+LT    POP    i1i   
+JF    $Exit_Loop_1074:
+PUSH  r3s    
+PUSH  i1i    
+MUL   POP    POP   
+MOV   r3s    POP   
+PUSH  i1i    
+PUSH  1      
+ADD   POP    POP   
+MOV   i1i    POP   
+JMP   $Condition_Loop_1074:
+LBL   $Exit_Loop_1074:
+PUSH  r3s    
+CALL  print  1     
+MOV   v0id   POP   
+PUSH  0      
+STO   
+STO   
+LBL   $GLOBAL__program_end:

@@ -1,0 +1,9 @@
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+PUSH  'PWD' 
+CALL  env   1     
+CALL  print 1     
+STO   
+STO   
+LBL   $GLOBAL__program_end:

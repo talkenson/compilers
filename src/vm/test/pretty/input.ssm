@@ -1,0 +1,14 @@
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+PUSH  5           
+PUSH  'shpatel'   
+PUSH  'albatross' 
+PUSH  3           
+ADD   POP         POP   
+PUSH  'squirqs'   
+ADD   POP         POP   
+CALL  print       3     
+STO   
+STO   
+LBL   $GLOBAL__program_end:

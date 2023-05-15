@@ -29,12 +29,14 @@ export class FunctionDeclaration extends LangEntity<FunctionDeclarationParams> {
     return `// function ${this.params.name} (${this.params.args
       .map(({ name, type }) => `${type || 'unknown'} ${name}`)
       .join(', ')})
+      ${this.params.name === 'main' ? `${Ctrl.DefineLabel} $__ENTRYPOINT:` : ''}
       ${Ctrl.DefineLabel} $FNCALL_${this.params.name}:
+      ${Ctrl.StepIn}
       ${this.params.args
         .map(({ name, type }) => `${Ctrl.Move} ${name} ${Ctrl.Pop}`)
         .join('\n')}
-      //${Ctrl.StepIn} ${this.params.name}
       ${this.params.body.toASM()}
+      ${Ctrl.StepOut}
       // end function ${this.params.name}\n\n`
   }
 }

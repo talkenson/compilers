@@ -1,6 +1,7 @@
-number m4in() {
+number main() {
     number t0pShelf set 17;
-    number i7put set read();
+    number i7put set getArg();
+    by (!i7put) i7put set read();
     by (i7put > 0) t0pShelf set i7put;
     
     r3sult set s4num(t0pShelf, 0);

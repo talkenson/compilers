@@ -1,10 +1,12 @@
+export const quotesRegular = /\s+(?=(?:[^']*'[^']*')*[^']*$)/
+
 export function createAsciiTable(data: string) {
   const processedData = data
     .split(/\n+/)
     .map((s) => s.trim())
     .filter((s) => s.length)
     .filter((s) => !s.startsWith('//'))
-    .map((row) => row.split(/\s+/).filter((s) => s.trim()))
+    .map((row) => row.split(quotesRegular).filter((s) => s.trim()))
   console.log(processedData)
   let result = ''
 

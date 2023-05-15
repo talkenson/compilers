@@ -6,8 +6,9 @@ var __publicField = (obj, key, value) => {
 };
 
 // src/asm/utils.ts
+var quotesRegular = /\s+(?=(?:[^']*'[^']*')*[^']*$)/;
 function createAsciiTable(data) {
-  const processedData = data.split(/\n+/).map((s) => s.trim()).filter((s) => s.length).filter((s) => !s.startsWith("//")).map((row) => row.split(/\s+/).filter((s) => s.trim()));
+  const processedData = data.split(/\n+/).map((s) => s.trim()).filter((s) => s.length).filter((s) => !s.startsWith("//")).map((row) => row.split(quotesRegular).filter((s) => s.trim()));
   console.log(processedData);
   let result = "";
   const columnLengths = Array(5).fill(0).map(
@@ -63,11 +64,10 @@ var Call = class extends LangEntity {
     return `${this.params.args.map((arg) => arg.toRpn()).join(" ")} !Call_${this.params.name}!`;
   }
   toASM() {
+    console.log(this.params.args);
     return [
-      ...this.params.args.map(
-        (arg, i) => `${arg.toASM().split("\n").reverse().join("\n")}`
-      ),
-      `CALL ${this.params.name}`
+      ...[...this.params.args].reverse().map((arg, i) => `${arg.toASM()}`),
+      `CALL ${this.params.name} ${this.params.args.length}`
     ].join("\n");
   }
 };
@@ -186,6 +186,7 @@ var operatorMap = {
   [">=" /* GreaterThanOrEqual */]: "GE" /* GreaterOrEqual */,
   ["<=" /* LessThanOrEqual */]: "LE" /* LessOrEqual */
 };
+var unaries = ["!Negate!" /* NegateUnary */, "!" /* Negate */];
 var Expression2 = class extends LangEntity {
   constructor(params = {
     tokens: []
@@ -241,7 +242,11 @@ var Expression2 = class extends LangEntity {
         return v.toASM();
       }
       if (isOperator(v)) {
-        return `${operatorMap[v] ?? "UNKN"} ${"POP" /* Pop */} ${"POP" /* Pop */}`;
+        const operator = operatorMap[v] ?? "UNKN";
+        if (unaries.includes(v)) {
+          return `${operator} ${"POP" /* Pop */}`;
+        }
+        return `${operator} ${"POP" /* Pop */} ${"POP" /* Pop */}`;
       }
       return "UNKN";
     }).join("\n");
@@ -594,10 +599,12 @@ ${this.params.body.toRpn()}
   }
   toASM() {
     return `// function ${this.params.name} (${this.params.args.map(({ name, type }) => `${type || "unknown"} ${name}`).join(", ")})
+      ${this.params.name === "main" ? `${"LBL" /* DefineLabel */} $__ENTRYPOINT:` : ""}
       ${"LBL" /* DefineLabel */} $FNCALL_${this.params.name}:
+      ${"STN" /* StepIn */}
       ${this.params.args.map(({ name, type }) => `${"MOV" /* Move */} ${name} ${"POP" /* Pop */}`).join("\n")}
-      //${"STN" /* StepIn */} ${this.params.name}
       ${this.params.body.toASM()}
+      ${"STO" /* StepOut */}
       // end function ${this.params.name}
 
 `;
@@ -782,6 +789,7 @@ ${asm}`;
   const pushBlock = () => tracer.push(new Block());
   const pushFunction = () => tracer.push(new FunctionDeclaration());
   const pushFnArg = (name, type) => tracer.current.params.args.push({ type, name });
+  const pushCallArg = (value) => tracer.current.params.args.push(value);
   const pushReturn = () => tracer.push(new Return());
   const pushBreak = () => {
     const latest = tracer.findLast((entity) => entity instanceof Switch);
@@ -879,6 +887,7 @@ ${asm}`;
     pushGlobal,
     pushFunction,
     pushFnArg,
+    pushCallArg,
     pushBlock,
     pushAssignment,
     pushReturn,

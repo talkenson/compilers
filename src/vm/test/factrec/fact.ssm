@@ -1,0 +1,39 @@
+LBL   $FNCALL_f4ctorial:
+STN   
+MOV   i1i       POP   
+PUSH  i1i       
+PUSH  0         
+EQ    POP       POP   
+JF    $Else_Conditional_698:
+PUSH  1         
+STO   
+JMP   $Exit_Conditional_698:
+LBL   $Else_Conditional_698:
+PUSH  i1i       
+PUSH  i1i       
+PUSH  1         
+SUB   POP       POP   
+CALL  f4ctorial 1     
+MUL   POP       POP   
+STO   
+LBL   $Exit_Conditional_698:
+STO   
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+CALL  getArg    0     
+MOV   n1n       POP   
+PUSH  n1n       
+NEGB  POP       
+JF    $Else_Conditional_727:
+CALL  read      0     
+MOV   n1n       POP   
+JMP   $Exit_Conditional_727:
+LBL   $Else_Conditional_727:
+LBL   $Exit_Conditional_727:
+PUSH  n1n       
+CALL  f4ctorial 1     
+CALL  print     1     
+STO   
+STO   
+LBL   $GLOBAL__program_end:

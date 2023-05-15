@@ -1,5 +1,6 @@
 import { Stack } from './src/stack.ts'
 import { Ctrl } from '../asm/controls.ts'
+import { quotesRegular } from '../asm/utils.ts'
 
 type RecursiveRecord<Value> = {
   [key: string]: Value | RecursiveRecord<Value>
@@ -26,18 +27,55 @@ const debug = Deno.args.includes('-d') || Deno.args.includes('--debug')
 const showStores =
   Deno.args.includes('-s') || Deno.args.includes('--show-stores')
 
+const extractPrimitiveValue = (value: string | null): string | number => {
+  const number = parseInt(value ?? '')
+  if (number.toString() === value) return number
+  return `'${value}'`
+}
+
+const getPassedArgs = () => {
+  let args = Deno.args.find((v) => v.startsWith('--args='))
+  if (args === undefined) return []
+  return args
+    .split('--args=')[1]
+    .split(quotesRegular)
+    .map((v) => extractPrimitiveValue(v))
+    .reverse()
+}
+
+const args = getPassedArgs()
+// --args="5 20 '40hello'"
+
+const isFalsy = (value: unknown) => {
+  if (typeof value === 'string') {
+    return value === ''
+  }
+  if (typeof value === 'number') {
+    return value === 0
+  }
+  return true
+}
+
 const findLabel = (label: string): Action => {
   const line = shortcuts.get(label)
-  if (!line) throw new Error(`Wanted label (${label}) not found`)
+  if (line === undefined) throw new Error(`Wanted label (${label}) not found`)
   return { action: 'jump', line }
 }
 
 const variableRegex = /^[a-z][0-9]{1,4}([a-zA-Z]+)$/
 
-const extractPrimitiveValue = (value: string | null): string | number => {
-  const number = parseInt(value ?? '')
-  if (number.toString() === value) return number
-  return `'${value}'`
+const heapSearch = (currentHeap: Heap, variableName: string) => {
+  let delta = 0
+  while (currentHeap['..']) {
+    if (currentHeap[variableName] !== undefined) {
+      if (showStores) console.log('Found', variableName, 'in', delta, 'steps')
+      return currentHeap[variableName] as string | number
+    }
+    currentHeap = currentHeap['..'] as Heap
+    delta++
+  }
+  return null
+  //throw new Error(`Variable ${variableName} not found`)
 }
 
 const extractValue = (value?: string): string | number | undefined => {
@@ -52,7 +90,7 @@ const extractValue = (value?: string): string | number | undefined => {
     return value
   }
   if (variableRegex.test(value)) {
-    return (heap[value] as string | number) ?? -1
+    return heapSearch(heap, value) ?? -1
   }
   if (value === Ctrl.Pop) {
     return stack.pop() ?? -1
@@ -74,8 +112,8 @@ const handle = (
   const rhs = extractValue(_rhs)
   switch (action) {
     case Ctrl.StepIn: {
-      //heap[lhs] = { '..': heap }
-      //heap = heap[lhs] as Heap
+      heap['deep'] = { '..': heap }
+      heap = heap['deep']
       break
     }
     case Ctrl.StepOut: {
@@ -99,7 +137,13 @@ const handle = (
     }
     case Ctrl.Call: {
       if (lhs == 'print') {
-        console.log(stack.pop())
+        console.log(
+          stack
+            .popMany(rhs as number)
+            .reverse()
+            .join(' ')
+        )
+        stack.push(0)
         break
       }
       if (lhs == 'read') {
@@ -108,29 +152,35 @@ const handle = (
         stack.push(value)
         break
       }
+      if (lhs == 'env') {
+        const value = Deno.env.get(stack.pop()! as string)
+        if (debug) console.log('[LOG]: Env', value, typeof value)
+        stack.push(value === undefined ? '' : value)
+        break
+      }
+      if (lhs == 'getArg') {
+        const argVal = args.pop()
+        if (debug) console.log('[LOG]: getArg', argVal, typeof argVal)
+        stack.push(argVal === undefined ? '' : argVal)
+        break
+      }
       callStack.push(line)
-      heap['deep'] = { '..': heap }
-      heap = heap['deep']
-      return findLabel(`$FNCALL_${lhs}:`)
-    }
-    case Ctrl.Print: {
-      console.log(lhs)
-      break
+      return findLabel(`$FNCALL_${_lhs}:`)
     }
     case Ctrl.Jump: {
       return findLabel(lhs as string)
     }
     case Ctrl.JumpFalse: {
-      if (stack.pop() == 0) return findLabel(lhs as string)
+      if (isFalsy(stack.pop())) return findLabel(lhs as string)
       break
     }
     // Maths
     case Ctrl.Add: {
-      stack.push((lhs as number) + (rhs as number))
+      stack.push((rhs as number) + (lhs as number))
       break
     }
     case Ctrl.Sub: {
-      stack.push((lhs as number) - (rhs as number))
+      stack.push((rhs as number) - (lhs as number))
       break
     }
     case Ctrl.Mul: {
@@ -216,15 +266,27 @@ if (import.meta.main) {
     }
   }
 
+  // console.debug('Parameters will be automatically passed')
+  // console.debug(JSON.stringify(args))
+
   if (showStores) console.log('Labels:', shortcuts)
 
-  for (let i = 0; i < program.length; ) {
+  const entryPoint = shortcuts.get('$__ENTRYPOINT:')
+
+  if (entryPoint === undefined) {
+    throw new Error('No Entrypoint (function named `main`)')
+  }
+
+  for (let i = entryPoint; i < program.length; ) {
     if (debug) console.log(JSON.stringify(stack))
     if (trace) console.log(`[${i + 1}]:\t`, program[i])
     if (interactive && trace) prompt('')
 
-    //@ts-ignore
-    const result = handle(i, ...program[i].split(/\s+/))
+    const result = handle(
+      i,
+      //@ts-ignore
+      ...program[i].split(quotesRegular)
+    )
     if (result !== null && result.action === 'jump') {
       i = result.line
       continue

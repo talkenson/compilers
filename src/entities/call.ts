@@ -25,11 +25,10 @@ export class Call extends LangEntity<CallParams> {
   }
 
   toASM(): string {
+    console.log(this.params.args)
     return [
-      ...this.params.args.map(
-        (arg, i) => `${arg.toASM().split('\n').reverse().join('\n')}`
-      ),
-      `CALL ${this.params.name}`,
+      ...[...this.params.args].reverse().map((arg, i) => `${arg.toASM()}`),
+      `CALL ${this.params.name} ${this.params.args.length}`,
     ].join('\n')
   }
 }

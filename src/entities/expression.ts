@@ -88,6 +88,8 @@ const operatorMap = {
   [Operator.LessThanOrEqual]: Ctrl.LessOrEqual,
 }
 
+const unaries = [Operator.NegateUnary, Operator.Negate]
+
 export class Expression extends LangEntity<ExpressionParams> {
   constructor(
     params: ExpressionParams = {
@@ -163,7 +165,11 @@ export class Expression extends LangEntity<ExpressionParams> {
           return v.toASM()
         }
         if (isOperator(v)) {
-          return `${operatorMap[v] ?? 'UNKN'} ${Ctrl.Pop} ${Ctrl.Pop}`
+          const operator = operatorMap[v] ?? 'UNKN'
+          if (unaries.includes(v)) {
+            return `${operator} ${Ctrl.Pop}`
+          }
+          return `${operator} ${Ctrl.Pop} ${Ctrl.Pop}`
         }
         return 'UNKN'
       })

@@ -1,0 +1,108 @@
+LBL   $FNCALL_f1b:
+STN   
+MOV   n4m       POP   
+MOV   l0gging   POP   
+PUSH  n4m       
+PUSH  1         
+EQ    POP       POP   
+JF    $Else_Conditional_752:
+PUSH  l0gging   
+JF    $Else_Conditional_759:
+PUSH  1         
+PUSH  'is'      
+PUSH  n4m       
+PUSH  'Fib for' 
+CALL  print     4     
+MOV   v0id      POP   
+JMP   $Exit_Conditional_759:
+LBL   $Else_Conditional_759:
+LBL   $Exit_Conditional_759:
+PUSH  1         
+STO   
+JMP   $Exit_Conditional_752:
+LBL   $Else_Conditional_752:
+LBL   $Exit_Conditional_752:
+PUSH  n4m       
+PUSH  0         
+LE    POP       POP   
+JF    $Else_Conditional_782:
+PUSH  l0gging   
+JF    $Else_Conditional_789:
+PUSH  0         
+PUSH  'is'      
+PUSH  n4m       
+PUSH  'Fib for' 
+CALL  print     4     
+MOV   v0id      POP   
+JMP   $Exit_Conditional_789:
+LBL   $Else_Conditional_789:
+LBL   $Exit_Conditional_789:
+PUSH  0         
+STO   
+JMP   $Exit_Conditional_782:
+LBL   $Else_Conditional_782:
+LBL   $Exit_Conditional_782:
+PUSH  l0gging   
+PUSH  n4m       
+PUSH  1         
+SUB   POP       POP   
+CALL  f1b       2     
+PUSH  l0gging   
+PUSH  n4m       
+PUSH  2         
+SUB   POP       POP   
+CALL  f1b       2     
+ADD   POP       POP   
+MOV   r3sult    POP   
+PUSH  l0gging   
+JF    $Else_Conditional_829:
+PUSH  r3sult    
+PUSH  'is'      
+PUSH  n4m       
+PUSH  'Fib for' 
+CALL  print     4     
+MOV   v0id      POP   
+JMP   $Exit_Conditional_829:
+LBL   $Else_Conditional_829:
+LBL   $Exit_Conditional_829:
+PUSH  r3sult    
+STO   
+STO   
+LBL   $__ENTRYPOINT:
+LBL   $FNCALL_main:
+STN   
+CALL  getArg    0     
+MOV   t0p       POP   
+PUSH  t0p       
+NEGB  POP       
+JF    $Else_Conditional_860:
+CALL  read      0     
+MOV   t0p       POP   
+JMP   $Exit_Conditional_860:
+LBL   $Else_Conditional_860:
+LBL   $Exit_Conditional_860:
+PUSH  t0p       
+PUSH  0         
+LT    POP       POP   
+JF    $Else_Conditional_871:
+PUSH  0         
+MOV   t0p       POP   
+JMP   $Exit_Conditional_871:
+LBL   $Else_Conditional_871:
+LBL   $Exit_Conditional_871:
+PUSH  'LOG'     
+CALL  env       1     
+PUSH  1         
+EQ    POP       POP   
+MOV   l0g       POP   
+PUSH  l0g       
+PUSH  t0p       
+CALL  f1b       2     
+MOV   r3sult    POP   
+PUSH  r3sult    
+CALL  print     1     
+MOV   v0id      POP   
+PUSH  r3sult    
+STO   
+STO   
+LBL   $GLOBAL__program_end:

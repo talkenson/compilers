@@ -1,5 +1,10 @@
 {
   "tasks": {
-    "run": "deno run --allow-all main.ts input.ssm"
+    "run": "deno run --allow-all main.ts"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.187.0/",
+    "src/": "./src/",
+    "test/": "./test/"
   }
 }
