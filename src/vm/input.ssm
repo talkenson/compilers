@@ -1,0 +1,95 @@
+LBL   $FNCALL_m4in:
+PUSH  17       
+MOV   t0pShelf POP   
+CALL  read     
+MOV   i7put    POP   
+PUSH  i7put    
+PUSH  0        
+GT    POP      POP   
+JF    $Else_Conditional_262:
+PUSH  i7put    
+MOV   t0pShelf POP   
+JMP   $Exit_Conditional_262:
+LBL   $Else_Conditional_262:
+LBL   $Exit_Conditional_262:
+PUSH  0        
+PUSH  t0pShelf 
+CALL  s4num    
+MOV   r3sult   POP   
+PUSH  r3sult   
+CALL  print    
+STO   
+LBL   $FNCALL_s4num:
+MOV   t0p      POP   
+MOV   s74rt    POP   
+PUSH  t0p      
+PUSH  s74rt    
+EQ    POP      POP   
+JF    $Else_Conditional_291:
+PUSH  t0p      
+STO   
+JMP   $Exit_Conditional_291:
+LBL   $Else_Conditional_291:
+LBL   $Exit_Conditional_291:
+PUSH  0        
+MOV   c0unt    POP   
+PUSH  ''       
+MOV   t7pe     POP   
+PUSH  t0p      
+PUSH  2        
+MOD   POP      POP   
+PUSH  0        
+EQ    POP      POP   
+JF    $Else_Conditional_310:
+PUSH  'even'   
+MOV   t7pe     POP   
+JMP   $Exit_Conditional_310:
+LBL   $Else_Conditional_310:
+PUSH  'odd'    
+MOV   t7pe     POP   
+LBL   $Exit_Conditional_310:
+PUSH  t7pe     
+CALL  print    
+MOV   v0id     POP   
+PUSH  t0p      
+PUSH  s74rt    
+GT    POP      POP   
+JF    $Else_Conditional_334:
+PUSH  s74rt    
+MOV   i1er     POP   
+LBL   $Condition_Loop_342:
+PUSH  t0p      
+LT    POP      i1er  
+JF    $Exit_Loop_342:
+PUSH  c0unt    
+PUSH  i1er     
+ADD   POP      POP   
+MOV   c0unt    POP   
+PUSH  i1er     
+PUSH  1        
+ADD   POP      POP   
+MOV   i1er     POP   
+JMP   $Condition_Loop_342:
+LBL   $Exit_Loop_342:
+JMP   $Exit_Conditional_334:
+LBL   $Else_Conditional_334:
+PUSH  t0p      
+MOV   i1er     POP   
+LBL   $Condition_Loop_357:
+PUSH  s74rt    
+LT    POP      i1er  
+JF    $Exit_Loop_357:
+PUSH  c0unt    
+PUSH  i1er     
+ADD   POP      POP   
+MOV   c0unt    POP   
+PUSH  i1er     
+PUSH  1        
+ADD   POP      POP   
+MOV   i1er     POP   
+JMP   $Condition_Loop_357:
+LBL   $Exit_Loop_357:
+LBL   $Exit_Conditional_334:
+PUSH  c0unt    
+STO   
+LBL   $GLOBAL__program_end:

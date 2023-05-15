@@ -1,3 +1,4 @@
+import { Ctrl } from '../asm/controls'
 import { LangEntity } from './base'
 import { FunctionDeclaration } from './function-declaration'
 
@@ -17,6 +18,9 @@ export class Global extends LangEntity<GlobalParams> {
   }
 
   toASM(): string {
-    return this.params.functions.map((f) => f.toASM()).join('\n')
+    return [
+      ...this.params.functions.map((f) => f.toASM()),
+      [Ctrl.DefineLabel, '$GLOBAL__program_end:'].join(' '),
+    ].join('\n')
   }
 }

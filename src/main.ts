@@ -1,3 +1,4 @@
+import { createAsciiTable } from './asm/utils'
 import {
   Assignment,
   Block,
@@ -24,9 +25,45 @@ const reset = () => {
   const tracer = new Tracer<LangEntity<any>>()
   const debug = console.log
 
+  let asmdiv = document.getElementById('asmBlock')
+  if (!asmdiv) {
+    asmdiv = document.createElement('div')
+    document.body.appendChild(asmdiv)
+  }
+  asmdiv.id = 'asmBlock'
+  asmdiv.style.position = 'fixed'
+  asmdiv.style.bottom = '0'
+  asmdiv.style.right = '0'
+  asmdiv.style.width = '30%'
+  asmdiv.style.height = '50%'
+  asmdiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+  asmdiv.style.color = 'white'
+  asmdiv.style.padding = '1rem'
+  asmdiv.style.overflow = 'scroll'
+  asmdiv.style.zIndex = '99'
+  asmdiv.style.fontFamily = 'monospace'
+  asmdiv.style.fontSize = '1.5rem'
+  asmdiv.style.whiteSpace = 'pre-wrap'
+  asmdiv.style.wordBreak = 'break-word'
+  asmdiv.style.cursor = 'pointer'
+
+  asmdiv.onclick = function () {
+    document.execCommand('copy')
+  }
+
+  asmdiv.addEventListener('copy', function (event) {
+    event.preventDefault()
+    if (event.clipboardData) {
+      event.clipboardData.setData('text/plain', asmdiv.innerText)
+      console.log(event.clipboardData.getData('text'))
+    }
+  })
+
   const getAll = () => {
     console.warn(tracer.current)
-    return `${tracer.current.toRpn()}\n\n\n${tracer.current.toASM()}`
+    const asm = createAsciiTable(tracer.current.toASM())
+    asmdiv.innerHTML = asm
+    return `${tracer.current.toRpn()}\n\n\n${asm}`
   }
 
   const pushGlobal = () => tracer.push(new Global())

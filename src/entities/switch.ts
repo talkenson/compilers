@@ -94,8 +94,8 @@ export class Switch extends LangEntity<SwitchParams> {
 
   toASM(): string {
     return [
-      Ctrl.StepIn,
-      this.asmId,
+      //Ctrl.StepIn,
+      //this.asmId,
 
       this.params.cases.flatMap((c, j) => [
         ...c.params.values.flatMap((v, i) => [
@@ -111,7 +111,7 @@ export class Switch extends LangEntity<SwitchParams> {
           c.getLabel('Case'),
         ]),
         '\n',
-        Ctrl.JumpFalse,
+        Ctrl.Jump,
         c.getLabel('Skip'),
         '\n',
         Ctrl.DefineLabel,
@@ -121,6 +121,7 @@ export class Switch extends LangEntity<SwitchParams> {
         '\n',
         Ctrl.DefineLabel,
         c.getLabel('Skip'),
+        '\n',
       ]),
 
       this.params.default?.toASM() ?? '',
@@ -128,8 +129,8 @@ export class Switch extends LangEntity<SwitchParams> {
       Ctrl.DefineLabel,
       this.getLabel('Exit'),
 
-      Ctrl.StepOut,
-      this.asmId,
+      //Ctrl.StepOut,
+      //this.asmId,
     ]
       .flat()
       .join(' ')

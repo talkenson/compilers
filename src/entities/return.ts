@@ -18,6 +18,6 @@ export class Return extends LangEntity<ReturnParams> {
   }
 
   toASM(): string {
-    return [this.params.value.toASM(), `${Ctrl.Return} ${Ctrl.Pop}`].join('\n')
+    return [this.params.value.toASM(), Ctrl.StepOut].join('\n')
   }
 }

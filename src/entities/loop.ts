@@ -56,8 +56,8 @@ export class Loop extends LangEntity<LoopParams> {
 
   toASM(): string {
     return [
-      Ctrl.StepIn,
-      this.asmId,
+      //Ctrl.StepIn,
+      //this.asmId,
       '\n',
       this.params.from.toASM(),
       '\n',
@@ -70,11 +70,11 @@ export class Loop extends LangEntity<LoopParams> {
       '\n',
       this.params.to.toASM(),
       '\n',
-      Ctrl.LessOrEqual,
-      this.params.iterator,
+      Ctrl.Less,
       Ctrl.Pop,
+      this.params.iterator,
       '\n',
-      Command.JumpElse,
+      Ctrl.JumpFalse,
       this.getLabel('Exit'),
       '\n',
       this.params.body.toASM(), // body
@@ -82,9 +82,11 @@ export class Loop extends LangEntity<LoopParams> {
       Ctrl.Push,
       this.params.iterator,
       '\n',
+      this.params.step?.toASM() ?? `${Ctrl.Push} 1`,
+      '\n',
       Ctrl.Add,
-      Ctrl.Peek,
-      this.params.step?.toASM() ?? '1',
+      Ctrl.Pop,
+      Ctrl.Pop,
       '\n',
       Ctrl.Move,
       this.params.iterator,
@@ -95,8 +97,9 @@ export class Loop extends LangEntity<LoopParams> {
       '\n',
       Ctrl.DefineLabel,
       this.getLabel('Exit'),
-      Ctrl.StepOut,
-      this.asmId,
+      '\n',
+      //Ctrl.StepOut,
+      //this.asmId,
     ].join(' ')
   }
 }

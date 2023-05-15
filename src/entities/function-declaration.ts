@@ -28,14 +28,13 @@ export class FunctionDeclaration extends LangEntity<FunctionDeclarationParams> {
   toASM(): string {
     return `// function ${this.params.name} (${this.params.args
       .map(({ name, type }) => `${type || 'unknown'} ${name}`)
-      .join(', ')}) \n
+      .join(', ')})
+      ${Ctrl.DefineLabel} $FNCALL_${this.params.name}:
       ${this.params.args
-        .map(
-          ({ name, type }) =>
-            `${Ctrl.Move} ${this.params.name}__${name} ${Ctrl.Pop}`
-        )
-        .join('\n')}\n
-      ${Ctrl.StepIn} ${this.params.name}\n
-      ${this.params.body.toASM()}\n// end function ${this.params.name}\n\n`
+        .map(({ name, type }) => `${Ctrl.Move} ${name} ${Ctrl.Pop}`)
+        .join('\n')}
+      //${Ctrl.StepIn} ${this.params.name}
+      ${this.params.body.toASM()}
+      // end function ${this.params.name}\n\n`
   }
 }

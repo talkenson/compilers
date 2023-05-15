@@ -5,6 +5,28 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 
+// src/asm/utils.ts
+function createAsciiTable(data) {
+  const processedData = data.split(/\n+/).map((s) => s.trim()).filter((s) => s.length).filter((s) => !s.startsWith("//")).map((row) => row.split(/\s+/).filter((s) => s.trim()));
+  console.log(processedData);
+  let result = "";
+  const columnLengths = Array(5).fill(0).map(
+    (_, i) => Math.max(
+      5,
+      ...processedData.map(
+        (row) => (row[i] ?? "").startsWith("$") ? 0 : (row[i] ?? "").length
+      )
+    )
+  );
+  processedData.forEach((row) => {
+    row.forEach((cell, i) => {
+      result += cell.padEnd(columnLengths[i] + 1, " ");
+    });
+    result += "\n";
+  });
+  return result;
+}
+
 // src/entities/base.ts
 var _LangEntity = class {
   constructor(params = {}) {
@@ -42,7 +64,9 @@ var Call = class extends LangEntity {
   }
   toASM() {
     return [
-      ...this.params.args.map((arg) => arg.toASM()),
+      ...this.params.args.map(
+        (arg, i) => `${arg.toASM().split("\n").reverse().join("\n")}`
+      ),
       `CALL ${this.params.name}`
     ].join("\n");
   }
@@ -60,7 +84,29 @@ var Const2 = class extends LangEntity {
     return this.params.value;
   }
   toASM() {
-    return this.params.value;
+    console.log("Const.toAsm", this.params.value, this.params.value.length);
+    if (this.params.value.startsWith("'") || this.params.value.startsWith("`")) {
+      return this.params.value;
+    }
+    if (this.params.value === "true") {
+      return "1";
+    }
+    if (this.params.value === "false") {
+      return "0";
+    }
+    if (this.params.value.startsWith("0x")) {
+      return parseInt(
+        this.params.value.slice(2, this.params.value.length),
+        16
+      ).toString();
+    }
+    if (this.params.value.startsWith("0q")) {
+      return parseInt(
+        this.params.value.slice(2, this.params.value.length),
+        4
+      ).toString();
+    }
+    return parseFloat(this.params.value).toString(10);
   }
 };
 
@@ -186,7 +232,7 @@ var Expression2 = class extends LangEntity {
   toASM() {
     return this.toInnerRpn().map((v) => {
       if (v instanceof Const2) {
-        return `${"PUSH" /* Push */} ${v.params.value}`;
+        return `${"PUSH" /* Push */} ${v.toASM()}`;
       }
       if (v instanceof Id2) {
         return `${"PUSH" /* Push */} ${v.params.name}`;
@@ -195,7 +241,7 @@ var Expression2 = class extends LangEntity {
         return v.toASM();
       }
       if (isOperator(v)) {
-        return `${operatorMap[v] ?? "UNKN"} ${"PEEK" /* Peek */} ${"POP" /* Pop */}`;
+        return `${operatorMap[v] ?? "UNKN"} ${"POP" /* Pop */} ${"POP" /* Pop */}`;
       }
       return "UNKN";
     }).join("\n");
@@ -279,8 +325,8 @@ var Switch = class extends LangEntity {
   }
   toASM() {
     return [
-      "STN" /* StepIn */,
-      this.asmId,
+      //Ctrl.StepIn,
+      //this.asmId,
       this.params.cases.flatMap((c, j) => [
         ...c.params.values.flatMap((v, i) => [
           this.params.value.toASM(),
@@ -295,7 +341,7 @@ var Switch = class extends LangEntity {
           c.getLabel("Case")
         ]),
         "\n",
-        "JF" /* JumpFalse */,
+        "JMP" /* Jump */,
         c.getLabel("Skip"),
         "\n",
         "LBL" /* DefineLabel */,
@@ -304,14 +350,15 @@ var Switch = class extends LangEntity {
         c.params.body.toASM(),
         "\n",
         "LBL" /* DefineLabel */,
-        c.getLabel("Skip")
+        c.getLabel("Skip"),
+        "\n"
       ]),
       this.params.default?.toASM() ?? "",
       "\n",
       "LBL" /* DefineLabel */,
-      this.getLabel("Exit"),
-      "STO" /* StepOut */,
-      this.asmId
+      this.getLabel("Exit")
+      //Ctrl.StepOut,
+      //this.asmId,
     ].flat().join(" ");
   }
 };
@@ -333,7 +380,7 @@ var Break = class extends LangEntity {
     return [
       "JMP" /* Jump */,
       LangEntity.getLabel("Exit", Switch.name, this.params.entityId)
-    ].join("\n");
+    ].join(" ");
   }
 };
 
@@ -444,8 +491,8 @@ var Loop = class extends LangEntity {
   }
   toASM() {
     return [
-      "STN" /* StepIn */,
-      this.asmId,
+      //Ctrl.StepIn,
+      //this.asmId,
       "\n",
       this.params.from.toASM(),
       "\n",
@@ -458,11 +505,11 @@ var Loop = class extends LangEntity {
       "\n",
       this.params.to.toASM(),
       "\n",
-      "LE" /* LessOrEqual */,
-      this.params.iterator,
+      "LT" /* Less */,
       "POP" /* Pop */,
+      this.params.iterator,
       "\n",
-      "jumpElse" /* JumpElse */,
+      "JF" /* JumpFalse */,
       this.getLabel("Exit"),
       "\n",
       this.params.body.toASM(),
@@ -471,9 +518,11 @@ var Loop = class extends LangEntity {
       "PUSH" /* Push */,
       this.params.iterator,
       "\n",
+      this.params.step?.toASM() ?? `${"PUSH" /* Push */} 1`,
+      "\n",
       "ADD" /* Add */,
-      "PEEK" /* Peek */,
-      this.params.step?.toASM() ?? "1",
+      "POP" /* Pop */,
+      "POP" /* Pop */,
       "\n",
       "MOV" /* Move */,
       this.params.iterator,
@@ -484,8 +533,9 @@ var Loop = class extends LangEntity {
       "\n",
       "LBL" /* DefineLabel */,
       this.getLabel("Exit"),
-      "STO" /* StepOut */,
-      this.asmId
+      "\n"
+      //Ctrl.StepOut,
+      //this.asmId,
     ].join(" ");
   }
 };
@@ -522,7 +572,7 @@ var Return = class extends LangEntity {
     return `// return ${this.params.value.toRpn()}`;
   }
   toASM() {
-    return [this.params.value.toASM(), `${"RET" /* Return */} ${"POP" /* Pop */}`].join("\n");
+    return [this.params.value.toASM(), "STO" /* StepOut */].join("\n");
   }
 };
 
@@ -543,16 +593,12 @@ ${this.params.body.toRpn()}
 `;
   }
   toASM() {
-    return `// function ${this.params.name} (${this.params.args.map(({ name, type }) => `${type || "unknown"} ${name}`).join(", ")}) 
-
-      ${this.params.args.map(
-      ({ name, type }) => `${"MOV" /* Move */} ${this.params.name}__${name} ${"POP" /* Pop */}`
-    ).join("\n")}
-
-      ${"STN" /* StepIn */} ${this.params.name}
-
+    return `// function ${this.params.name} (${this.params.args.map(({ name, type }) => `${type || "unknown"} ${name}`).join(", ")})
+      ${"LBL" /* DefineLabel */} $FNCALL_${this.params.name}:
+      ${this.params.args.map(({ name, type }) => `${"MOV" /* Move */} ${name} ${"POP" /* Pop */}`).join("\n")}
+      //${"STN" /* StepIn */} ${this.params.name}
       ${this.params.body.toASM()}
-// end function ${this.params.name}
+      // end function ${this.params.name}
 
 `;
   }
@@ -569,7 +615,10 @@ var Global = class extends LangEntity {
     return this.params.functions.map((f) => f.toRpn()).join("\n");
   }
   toASM() {
-    return this.params.functions.map((f) => f.toASM()).join("\n");
+    return [
+      ...this.params.functions.map((f) => f.toASM()),
+      ["LBL" /* DefineLabel */, "$GLOBAL__program_end:"].join(" ")
+    ].join("\n");
   }
 };
 
@@ -648,12 +697,45 @@ var Tracer = class {
 var reset = () => {
   const tracer = new Tracer();
   const debug = console.log;
+  let asmdiv = document.getElementById("asmBlock");
+  if (!asmdiv) {
+    asmdiv = document.createElement("div");
+    document.body.appendChild(asmdiv);
+  }
+  asmdiv.id = "asmBlock";
+  asmdiv.style.position = "fixed";
+  asmdiv.style.bottom = "0";
+  asmdiv.style.right = "0";
+  asmdiv.style.width = "30%";
+  asmdiv.style.height = "50%";
+  asmdiv.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+  asmdiv.style.color = "white";
+  asmdiv.style.padding = "1rem";
+  asmdiv.style.overflow = "scroll";
+  asmdiv.style.zIndex = "99";
+  asmdiv.style.fontFamily = "monospace";
+  asmdiv.style.fontSize = "1.5rem";
+  asmdiv.style.whiteSpace = "pre-wrap";
+  asmdiv.style.wordBreak = "break-word";
+  asmdiv.style.cursor = "pointer";
+  asmdiv.onclick = function() {
+    document.execCommand("copy");
+  };
+  asmdiv.addEventListener("copy", function(event) {
+    event.preventDefault();
+    if (event.clipboardData) {
+      event.clipboardData.setData("text/plain", asmdiv.innerText);
+      console.log(event.clipboardData.getData("text"));
+    }
+  });
   const getAll = () => {
     console.warn(tracer.current);
+    const asm = createAsciiTable(tracer.current.toASM());
+    asmdiv.innerHTML = asm;
     return `${tracer.current.toRpn()}
 
 
-${tracer.current.toASM()}`;
+${asm}`;
   };
   const pushGlobal = () => tracer.push(new Global());
   const pushAssignment = () => tracer.push(new Assignment());

@@ -27,6 +27,6 @@ export class Break extends LangEntity<BreakParams> {
     return [
       Ctrl.Jump,
       LangEntity.getLabel('Exit', Switch.name, this.params.entityId),
-    ].join('\n')
+    ].join(' ')
   }
 }

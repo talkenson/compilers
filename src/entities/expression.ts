@@ -154,7 +154,7 @@ export class Expression extends LangEntity<ExpressionParams> {
     return this.toInnerRpn()
       .map((v) => {
         if (v instanceof Const) {
-          return `${Ctrl.Push} ${v.params.value}`
+          return `${Ctrl.Push} ${v.toASM()}`
         }
         if (v instanceof Id) {
           return `${Ctrl.Push} ${v.params.name}`
@@ -163,7 +163,7 @@ export class Expression extends LangEntity<ExpressionParams> {
           return v.toASM()
         }
         if (isOperator(v)) {
-          return `${operatorMap[v] ?? 'UNKN'} ${Ctrl.Peek} ${Ctrl.Pop}`
+          return `${operatorMap[v] ?? 'UNKN'} ${Ctrl.Pop} ${Ctrl.Pop}`
         }
         return 'UNKN'
       })

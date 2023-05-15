@@ -26,7 +26,9 @@ export class Call extends LangEntity<CallParams> {
 
   toASM(): string {
     return [
-      ...this.params.args.map((arg) => arg.toASM()),
+      ...this.params.args.map(
+        (arg, i) => `${arg.toASM().split('\n').reverse().join('\n')}`
+      ),
       `CALL ${this.params.name}`,
     ].join('\n')
   }
