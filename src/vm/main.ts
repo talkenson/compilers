@@ -79,8 +79,9 @@ const handle = (
       break
     }
     case Ctrl.StepOut: {
-      //heap = heap['..'] as Heap
       if (callStack.length > 0) {
+        heap = heap['..'] as Heap
+        delete heap['deep']
         return { action: 'jump', line: callStack.pop()! + 1 }
       } else {
         return findLabel('$GLOBAL__program_end:')
@@ -108,6 +109,8 @@ const handle = (
         break
       }
       callStack.push(line)
+      heap['deep'] = { '..': heap }
+      heap = heap['deep']
       return findLabel(`$FNCALL_${lhs}:`)
     }
     case Ctrl.Print: {
